@@ -1,382 +1,62 @@
-(function () {
-  'use strict';
+(function(){
+'use strict';
+var AI=window.OrdinaryMuseumAI, app=document.getElementById('app'), input=document.getElementById('photoInput');
+var state={route:'home',original:null,analysis:null,recommended:'film',selected:'film',generated:null,compare:'art',gallery:[],history:[]};
+var DB='olm-v3-db', STORE='artworks';
 
-  var AI = window.OrdinaryMuseumAI;
-  var app = document.getElementById('app');
-  var photoInput = document.getElementById('photoInput');
-  var state = {
-    route: 'home',
-    original: null,
-    selectedStyle: 'film',
-    generated: null,
-    compareMode: 'art',
-    gallery: []
-  };
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+function styleBy(id){return AI.styles.find(function(x){return x.id===id})||AI.styles[0]}
+function dateText(){var d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')}
+function exhibitNo(id){return 'No.'+String(id%1000000).padStart(6,'0')}
+function toast(t){var n=document.createElement('div');n.className='toast';n.textContent=t;document.body.appendChild(n);setTimeout(function(){n.classList.add('show')},10);setTimeout(function(){n.classList.remove('show');setTimeout(function(){n.remove()},240)},1800)}
 
-  var DB_NAME = 'ordinary-museum-db';
-  var STORE = 'artworks';
+function openDB(){return new Promise(function(resolve){if(!indexedDB)return resolve(null);var r=indexedDB.open(DB,1);r.onupgradeneeded=function(){if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'})};r.onsuccess=function(){resolve(r.result)};r.onerror=function(){resolve(null)}})}
+function dbAll(){return openDB().then(function(db){if(!db){try{return JSON.parse(localStorage.getItem('olm_v3')||'[]')}catch(e){return[]}}return new Promise(function(resolve){var r=db.transaction(STORE,'readonly').objectStore(STORE).getAll();r.onsuccess=function(){resolve((r.result||[]).sort(function(a,b){return b.id-a.id}))};r.onerror=function(){resolve([])}})})}
+function dbPut(x){return openDB().then(function(db){if(!db){try{var a=JSON.parse(localStorage.getItem('olm_v3')||'[]');a=a.filter(function(i){return i.id!==x.id});a.unshift(x);localStorage.setItem('olm_v3',JSON.stringify(a.slice(0,20)))}catch(e){}return}return new Promise(function(resolve){var tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(x);tx.oncomplete=resolve;tx.onerror=resolve})})}
+function dbClear(){return openDB().then(function(db){if(!db){localStorage.removeItem('olm_v3');return}return new Promise(function(resolve){var tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=resolve})})}
 
-  function openDB() {
-    return new Promise(function (resolve, reject) {
-      if (!('indexedDB' in window)) return resolve(null);
-      var req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = function () {
-        if (!req.result.objectStoreNames.contains(STORE)) {
-          req.result.createObjectStore(STORE, { keyPath: 'id' });
-        }
-      };
-      req.onsuccess = function () { resolve(req.result); };
-      req.onerror = function () { resolve(null); };
-    });
-  }
+function nav(active){return '<nav class="bottom-nav"><button data-nav="home" class="'+(active==='home'?'active':'')+'"><b>⌂</b><span>首页</span></button><button data-nav="gallery" class="'+(active==='gallery'?'active':'')+'"><b>▦</b><span>我的美术馆</span></button><button data-nav="notes" class="'+(active==='notes'?'active':'')+'"><b>✎</b><span>策展人手记</span></button></nav>'}
+function back(){return '<button class="round-icon" data-action="back">←</button>'}
+function menu(){return '<button class="round-icon" data-action="menu">☰</button>'}
+function brand(){return '<div class="brand"><strong>普通生活美术馆</strong><span>ORDINARY LIFE MUSEUM</span></div>'}
 
-  function dbGetAll() {
-    return openDB().then(function (db) {
-      if (!db) {
-        try { return JSON.parse(localStorage.getItem('olm_gallery_v2') || '[]'); }
-        catch (e) { return []; }
-      }
-      return new Promise(function (resolve) {
-        var tx = db.transaction(STORE, 'readonly');
-        var req = tx.objectStore(STORE).getAll();
-        req.onsuccess = function () { resolve((req.result || []).sort(function(a,b){return b.id-a.id;})); };
-        req.onerror = function () { resolve([]); };
-      });
-    });
-  }
+function home(){return '<main class="screen home-screen"><header>'+brand()+menu()+'</header><div class="home-grid"><section class="hero-copy"><div class="eyebrow">CURATE THE EVERYDAY · 日常策展计划</div><h1>把普通日子<br>挂进<em>美术馆。</em></h1><p class="lead">同一个瞬间，换一种观看方式。拍下一张你原本可能会忘记的照片，我们把它重新挂起来。</p><div class="doodles">✦　⌁　✿</div><button class="scribble-btn" data-action="start">开始布展 <span>→</span></button><p class="hand-arrow">↳ 点击开始，把你的生活挂进美术馆吧！</p></section><section class="hero-art-wrap"><div class="tape tape-coral"></div><div class="polaroid showcase"><div class="sample-scene"><i class="sun"></i><i class="sea"></i><i class="tram"></i><i class="rail"></i></div><div class="caption"><strong>今日作品</strong><span>No. 000128 ♡</span></div></div><div class="flower">✿</div><div class="pencils">▰ ▰ ▰</div></section></div></main>'+nav('home')}
 
-  function dbPut(item) {
-    return openDB().then(function (db) {
-      if (!db) {
-        try {
-          var list = JSON.parse(localStorage.getItem('olm_gallery_v2') || '[]');
-          list.unshift(item);
-          localStorage.setItem('olm_gallery_v2', JSON.stringify(list.slice(0, 12)));
-        } catch (e) {}
-        return;
-      }
-      return new Promise(function (resolve) {
-        var tx = db.transaction(STORE, 'readwrite');
-        tx.objectStore(STORE).put(item);
-        tx.oncomplete = resolve;
-        tx.onerror = resolve;
-      });
-    });
-  }
+function upload(){return '<main class="screen"><header class="simple-head">'+back()+'<div class="tiny-title">NEW EXHIBITION</div><span></span></header><section class="page-title"><small>01 · CHOOSE A MOMENT</small><h1>选择一个<br>普通瞬间</h1><p>通勤、晚饭、窗边、下雨、回家的路……越普通，越适合被重新看见。</p></section><section class="upload-card"><div class="camera-doodle">⌾</div><strong>拍一张，或者选一张</strong><p>照片只用于当前布展流程。这个版本默认在浏览器本地处理。</p><button class="paper-btn" data-action="pick">选择照片</button></section></main>'+nav('home')}
 
-  function dbClear() {
-    return openDB().then(function (db) {
-      if (!db) { localStorage.removeItem('olm_gallery_v2'); return; }
-      return new Promise(function(resolve){
-        var tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=resolve;
-      });
-    });
-  }
+function analysis(){var a=state.analysis||{};return '<main class="screen"><header class="simple-head">'+back()+'<div class="tiny-title">PHOTO ANALYSIS</div><span></span></header><section class="analysis-layout"><div class="photo-card"><img src="'+state.original+'"><div class="tape tape-yellow"></div></div><section class="analysis-copy"><div class="page-title compact"><small>02 · LOOK AGAIN</small><h1>这一刻，<br>被看见了。</h1></div><div class="analysis-note"><b>AI 照片观察</b><p>'+esc(a.summary)+'</p><div class="analysis-tags"><span>场景 · '+esc(a.scene)+'</span><span>光线 · '+esc(a.light)+'</span><span>情绪 · '+esc(a.mood)+'</span></div></div><button class="scribble-btn" data-action="to-styles">选择观看方式 →</button></section></section></main>'+nav('home')}
 
-  function escapeHtml(s) {
-    return String(s || '').replace(/[&<>'"]/g, function (c) {
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c];
-    });
-  }
+function styles(){var cards=AI.styles.map(function(s){var recommended=s.id===state.recommended,selected=s.id===state.selected;return '<button class="style-card tone-'+s.tone+' '+(selected?'selected ':'')+(recommended?'recommended':'')+'" data-style="'+s.id+'"><div class="style-preview"><img src="'+state.original+'" style="filter:'+previewFilter(s.id)+'"><i>'+s.icon+'</i></div><div class="room-label">'+esc(s.room)+'</div><h3>'+esc(s.name)+'</h3><small>'+esc(s.en)+'</small><p>'+esc(s.desc)+'</p>'+(recommended?'<mark>策展人推荐</mark>':'')+'</button>'}).join('');return '<main class="screen styles-screen"><header class="simple-head">'+back()+'<div class="tiny-title">WAYS OF SEEING</div><span></span></header><section class="page-title"><small>03 · SELECT A GALLERY</small><h1>选择一种<br>观看方式</h1><p>不是滤镜菜单，而是六个不同的展厅。</p></section><div class="mini-original"><img src="'+state.original+'"><div><b>原始瞬间</b><span>已完成观察 · 推荐 '+esc(styleBy(state.recommended).room)+'</span></div></div><section class="style-grid">'+cards+'</section><div class="sticky-cta"><button class="scribble-btn" data-action="generate">开始布展 →</button></div></main>'+nav('home')}
+function previewFilter(id){return({oil:'saturate(1.15) contrast(1.08) sepia(.15)',film:'saturate(.78) contrast(.9) sepia(.14) brightness(1.05)',dream:'saturate(1.2) contrast(.86) brightness(1.09) hue-rotate(5deg)',watercolor:'saturate(.82) contrast(.82) brightness(1.14)',print:'grayscale(.75) sepia(.55) contrast(1.22)',editorial:'saturate(.85) contrast(1.1) brightness(1.04)'})[id]||''}
 
-  function today() {
-    try { return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date()).replace(/\//g,'.'); }
-    catch (e) { return new Date().toLocaleDateString(); }
-  }
+function loading(){return '<main class="screen loading-screen"><header class="simple-head">'+back()+'<span></span><span></span></header><section class="loading-stage"><div class="loading-photo"><img src="'+state.original+'"><div class="tape tape-coral"></div><div class="leaf">❧</div></div><h1>正在布展……</h1><div class="underline"></div><div class="sticky-note">你的普通生活，<br>正在被重新挂进美术馆。 <span>♡</span></div><div class="progress-row"><span id="progressText">正在整理光线 ✎</span><b id="progressPct">0%</b></div><div class="progress"><i id="progressBar"></i></div></section></main>'}
 
-  function exhibitNo(id) {
-    var n = String(id % 1000000).padStart(6, '0');
-    return 'No.' + n;
-  }
+function result(){var x=state.generated;if(!x)return home();var visible=state.compare==='original'?x.original:x.image;return '<main class="screen result-screen"><header class="simple-head">'+back()+'<div class="tiny-title">TODAY\'S EXHIBIT</div>'+menu()+'</header><section class="result-layout"><div><div class="result-frame"><img id="resultImage" src="'+visible+'"><div class="tape tape-yellow"></div><div class="exhibit-tag">'+esc(x.no)+'<br><span>'+esc(x.date)+'</span> ♡</div></div><div class="compare"><button data-compare="art" class="'+(state.compare==='art'?'active':'')+'">作品</button><button data-compare="original" class="'+(state.compare==='original'?'active':'')+'">原片</button></div></div><section class="result-info"><div class="room-label">'+esc(x.style.room)+'</div><h1>'+esc(x.style.name)+'</h1><small>'+esc(x.style.en)+'</small><div class="meta-line"><span>媒介 · '+esc(x.medium)+'</span><span>'+esc(x.no)+'</span></div><article class="curator-note"><h3>策展人手记 ✿</h3><p>'+esc(x.note)+'</p></article><div class="favorite-row"><button data-action="favorite" class="favorite '+(x.favorite?'active':'')+'">'+(x.favorite?'♥ 已收藏':'♡ 收藏这件作品')+'</button></div></section></section><section class="action-bar"><button data-action="save"><b>⇩</b><span>保存作品</span></button><button data-action="again"><b>↻</b><span>再做一幅</span></button><button data-action="share"><b>↗</b><span>分享展签</span></button><button data-nav="gallery"><b>▦</b><span>我的美术馆</span></button></section></main>'+nav('gallery')}
 
-  function toast(message) {
-    var el = document.createElement('div');
-    el.className = 'toast';
-    el.textContent = message;
-    document.body.appendChild(el);
-    requestAnimationFrame(function(){el.classList.add('show');});
-    setTimeout(function(){el.classList.remove('show'); setTimeout(function(){el.remove();},220);},1800);
-  }
+var samples=[['film','海边电车'],['oil','窗边花瓶'],['editorial','午后咖啡'],['dream','傍晚天空'],['watercolor','湖边小屋'],['print','旧街转角']];
+function gallery(){var real=state.gallery;var grid=real.length?real.map(function(x){return '<button class="gallery-item" data-open="'+x.id+'"><div class="gallery-photo"><img src="'+x.image+'"><i class="mini-tape"></i></div><b>'+esc(x.style.name)+'</b><small>'+esc(x.no)+' · '+esc(x.date)+'</small></button>'}).join(''):samples.map(function(s,i){var st=styleBy(s[0]);return '<div class="gallery-item sample"><div class="sample-thumb tone-'+st.tone+'"><span>'+st.icon+'</span></div><b>'+s[1]+'</b><small>示例展品 · '+st.name+'</small></div>'}).join('');return '<main class="screen gallery-screen"><header>'+brand()+menu()+'</header><section class="gallery-title"><div><small>MY ORDINARY MUSEUM</small><h1>我的美术馆 ✿</h1><p>共 '+real.length+' 件真实作品'+(!real.length?' · 下方为示例展陈':'')+'</p></div><button class="round-icon" data-action="curate">✦</button></section><div class="spiral">○ ○ ○ ○ ○ ○ ○ ○</div><section class="gallery-grid">'+grid+'</section><button class="scribble-btn gallery-new" data-action="start">＋ 开始新布展</button><section class="private-curator"><div><small>PRIVATE AI CURATOR</small><h2>私人 AI 策展</h2><p>从你的作品里挑出一组主题展，并为它写一段展览前言。</p></div><button class="paper-btn" data-action="curate">为我策一次展</button></section></main>'+nav('gallery')}
 
-  function navHtml(active) {
-    return '<nav class="bottom-nav" aria-label="主导航">' +
-      '<button data-nav="home" class="'+(active==='home'?'active':'')+'"><span>⌂</span><small>首页</small></button>' +
-      '<button data-nav="gallery" class="'+(active==='gallery'?'active':'')+'"><span>▦</span><small>我的美术馆</small></button>' +
-      '<button data-nav="notes" class="'+(active==='notes'?'active':'')+'"><span>✎</span><small>策展人手记</small></button>' +
-      '</nav>';
-  }
+function notes(){var list=state.gallery.length?state.gallery.slice(0,6).map(function(x,i){return '<article class="note-card c'+(i%4)+'"><small>'+esc(x.date)+' · '+esc(x.no)+'</small><h3>'+esc(x.style.name)+'</h3><p>'+esc(x.note)+'</p><button data-open="'+x.id+'">查看作品 →</button></article>'}).join(''):'<article class="note-card c0"><small>今天 · 馆内手记</small><h3>普通不是无聊</h3><p>我们总是急着把日子过完，却忘了，那些普通瞬间，才是真正的生活。</p></article><article class="note-card c1"><small>给下一张照片</small><h3>先拍下来</h3><p>不要等场景足够完美。美术馆真正想收藏的，是你会忘记的那一刻。</p></article><article class="note-card c2"><small>观看练习</small><h3>换一种眼睛</h3><p>同一个地点，不同的光线、质感和距离，就能拥有另一种意义。</p></article>';return '<main class="screen notes-screen"><header class="simple-head">'+back()+'<div class="tiny-title">CURATOR NOTES</div>'+menu()+'</header><section class="page-title"><small>NOTES FROM THE MUSEUM</small><h1>策展人手记 ✎</h1><p>不是评价照片好不好，而是记录这一刻为什么值得被看见。</p></section><section class="notes-list">'+list+'</section></main>'+nav('notes')}
 
-  function backButton() {
-    return '<button class="icon-btn" data-action="back" aria-label="返回">←</button>';
-  }
+function render(){state.history.push(state.route);app.innerHTML=({home:home,upload:upload,analysis:analysis,styles:styles,loading:loading,result:result,gallery:gallery,notes:notes}[state.route]||home)();bind()}
+function go(r){state.route=r;render();window.scrollTo(0,0)}
 
-  function menuButton() {
-    return '<button class="icon-btn" data-action="menu" aria-label="菜单">☰</button>';
-  }
+function bind(){app.querySelectorAll('[data-nav]').forEach(function(b){b.onclick=function(){go(this.dataset.nav)}});app.querySelectorAll('[data-action]').forEach(function(b){b.onclick=function(){action(this.dataset.action)}});app.querySelectorAll('[data-style]').forEach(function(b){b.onclick=function(){state.selected=this.dataset.style;render()}});app.querySelectorAll('[data-compare]').forEach(function(b){b.onclick=function(){state.compare=this.dataset.compare;render()}});app.querySelectorAll('[data-open]').forEach(function(b){b.onclick=function(){var id=Number(this.dataset.open),x=state.gallery.find(function(i){return i.id===id});if(x){state.generated=x;state.compare='art';go('result')}}})}
 
-  function homeScreen() {
-    return '<main class="screen">' +
-      '<header class="topbar"><div class="brand-mark"><strong>普通生活美术馆</strong><span>ORDINARY LIFE MUSEUM</span></div>' + menuButton() + '</header>' +
-      '<section class="hero-copy"><div class="eyebrow">CURATE THE EVERYDAY · 日常策展计划</div>' +
-      '<h1 class="hero-title">把普通日子<br>挂进<em>美术馆。</em></h1>' +
-      '<p class="hero-sub">同一个瞬间，换一种观看方式。拍下一张你原本可能会忘记的照片，我们把它重新挂起来。</p>' +
-      '<div class="doodle-row"><span>✦</span><span>⌁</span><span>✿</span></div></section>' +
-      '<section class="polaroid" aria-label="今日作品示意"><div class="hero-art"><div class="tram"></div><div class="rail"></div></div>' +
-      '<div class="polaroid-caption"><strong>今日作品</strong><small>No.000128 ♡</small></div></section>' +
-      '<button class="primary-btn" data-action="start">开始布展 →</button>' +
-      '<p class="hand-note">点击开始，把你的生活挂进美术馆吧！</p>' +
-      '</main>' + navHtml('home');
-  }
+function action(a){if(a==='back'){var prev=state.history.length>1?state.history[state.history.length-2]:'home';state.history=state.history.slice(0,-2);state.route=prev;render();return}if(a==='menu'){menuSheet();return}if(a==='start'){go('upload');return}if(a==='pick'){input.value='';input.click();return}if(a==='to-styles'){go('styles');return}if(a==='generate'){generate();return}if(a==='again'){go('styles');return}if(a==='save'){downloadArt();return}if(a==='share'){shareArt();return}if(a==='favorite'){favorite();return}if(a==='curate'){curate();return}}
 
-  function uploadScreen() {
-    return '<main class="screen">' +
-      '<header class="topbar">' + backButton() + '<div class="eyebrow">NEW EXHIBITION</div><span style="width:42px"></span></header>' +
-      '<h1 class="screen-title">选择一个<br>普通瞬间</h1>' +
-      '<p class="screen-sub">先选一张照片。这个原型默认只在你的浏览器本地处理，不会主动上传到服务器。</p>' +
-      '<section class="upload-zone">' +
-      '<div><div class="camera"></div><strong>拍一张，或者选一张</strong><p>通勤、晚饭、窗边、下雨、回家的路……<br>越普通，越适合被重新看见。</p><button class="paper-btn" data-action="pick-photo">选择照片</button></div>' +
-      '</section></main>' + navHtml('home');
-  }
+input.onchange=function(e){var f=e.target.files&&e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){state.original=r.result;AI.analyzePhoto(r.result).then(function(a){state.analysis=a;state.recommended=AI.recommendGallery(a);state.selected=state.recommended;go('analysis')})};r.readAsDataURL(f)};
 
-  function styleScreen() {
-    var cards = AI.styles.map(function (s) {
-      return '<button class="style-card '+(state.selectedStyle===s.id?'selected':'')+'" data-style="'+s.id+'" data-tone="'+s.tone+'">' +
-        '<img class="style-thumb" src="'+state.original+'" alt="'+escapeHtml(s.name)+'预览" style="filter:'+previewFilter(s.id)+'">' +
-        '<h3>'+escapeHtml(s.name)+'</h3><span class="en">'+escapeHtml(s.en)+'</span><p>'+escapeHtml(s.desc)+'</p></button>';
-    }).join('');
-    return '<main class="screen">' +
-      '<header class="topbar">'+backButton()+'<div class="eyebrow">WAYS OF SEEING</div><span style="width:42px"></span></header>' +
-      '<h1 class="screen-title">选择一种<br>观看方式</h1><p class="screen-sub">不是给照片套滤镜，而是给同一个瞬间换一副观看的眼睛。</p>' +
-      '<div class="preview-strip"><img src="'+state.original+'" alt="原始照片"><div><strong>原始瞬间</strong><small>已准备好 · 选择一种展厅风格</small></div></div>' +
-      '<section class="style-grid">'+cards+'</section>' +
-      '<div class="sticky-actions"><button class="primary-btn" style="margin:0" data-action="generate">开始布展 →</button></div>' +
-      '</main>' + navHtml('home');
-  }
+function generate(){go('loading');var p=0,bar=document.getElementById('progressBar'),pct=document.getElementById('progressPct'),txt=document.getElementById('progressText');var labels=['正在整理光线 ✎','正在选择纸张肌理 ❋','正在调整观看距离 ◌','正在写展签 ✿'];var timer=setInterval(function(){p=Math.min(96,p+Math.floor(Math.random()*11)+5);if(bar)bar.style.width=p+'%';if(pct)pct.textContent=p+'%';if(txt)txt.textContent=labels[Math.min(labels.length-1,Math.floor(p/25))]},170);setTimeout(function(){transform(state.original,state.selected,function(out){clearInterval(timer);var id=Date.now(),s=styleBy(state.selected),item={id:id,original:state.original,image:out,style:s,no:exhibitNo(id),date:dateText(),medium:mediumFor(s.id),note:s.note,favorite:false,prompt:AI.buildPrompt(s,state.analysis||{})};state.generated=item;dbPut(item).then(function(){return dbAll()}).then(function(g){state.gallery=g;state.compare='art';go('result')})})},1200)}
+function mediumFor(id){return({oil:'数字油画 / 布面质感',film:'数字胶片 / 颗粒模拟',dream:'数字混合媒介',watercolor:'数字水彩 / 纸张质感',print:'数字版画 / 线刻质感',editorial:'数字摄影 / 编辑构图'})[id]||'数字混合媒介'}
+function transform(src,id,done){var img=new Image();img.onload=function(){var max=1600,scale=Math.min(1,max/Math.max(img.width,img.height)),w=Math.round(img.width*scale),h=Math.round(img.height*scale),c=document.createElement('canvas'),x=c.getContext('2d');c.width=w;c.height=h;x.filter=previewFilter(id);x.drawImage(img,0,0,w,h);x.filter='none';if(id==='film'){x.globalAlpha=.09;x.fillStyle='#9b623f';x.fillRect(0,0,w,h);x.globalAlpha=.07;for(var i=0;i<600;i++){x.fillStyle=i%2?'#fff':'#222';x.fillRect(Math.random()*w,Math.random()*h,1,1)}}if(id==='watercolor'){x.globalCompositeOperation='screen';x.globalAlpha=.15;x.fillStyle='#fff8ed';x.fillRect(0,0,w,h)}if(id==='print'){x.globalAlpha=.11;x.fillStyle='#2f261f';for(var xx=0;xx<w;xx+=6)x.fillRect(xx,0,1,h)}if(id==='editorial'){x.strokeStyle='rgba(255,250,242,.88)';x.lineWidth=Math.max(4,w*.012);x.strokeRect(w*.045,h*.045,w*.91,h*.91)}if(id==='dream'){var g=x.createRadialGradient(w*.48,h*.42,10,w*.5,h*.5,Math.max(w,h)*.72);g.addColorStop(0,'rgba(255,255,255,.03)');g.addColorStop(1,'rgba(180,135,230,.16)');x.fillStyle=g;x.fillRect(0,0,w,h)}x.globalAlpha=1;x.globalCompositeOperation='source-over';done(c.toDataURL('image/jpeg',.9))};img.onerror=function(){done(src)};img.src=src}
+function downloadArt(){var x=state.generated;if(!x)return;var a=document.createElement('a');a.href=x.image;a.download='ordinary-museum-'+x.no.replace('.','-')+'.jpg';a.click();toast('作品已准备保存')}
+function shareArt(){var x=state.generated;if(!x)return;var text='我把一个普通瞬间挂进了「普通生活美术馆」：'+x.style.name+' · '+x.no;if(navigator.share){navigator.share({title:'普通生活美术馆',text:text,url:location.href}).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(text+' '+location.href);toast('分享文案已复制')}else toast('可复制当前网址分享')}
+function favorite(){var x=state.generated;if(!x)return;x.favorite=!x.favorite;dbPut(x).then(function(){return dbAll()}).then(function(g){state.gallery=g;render();toast(x.favorite?'已收藏进美术馆':'已取消收藏')})}
+function curate(){if(!state.gallery.length){toast('先布展一件真实作品，再请 AI 策展');return}var names=state.gallery.slice(0,3).map(function(x){return x.style.name+'《'+x.no+'》'}).join('、');modal('<small>PRIVATE AI CURATOR</small><h2>主题展：<br>「被日常留下的光」</h2><p>本次从你的美术馆里选出 '+state.gallery.slice(0,3).length+' 件作品：'+esc(names)+'。</p><blockquote>这些作品没有共同的地点，却共享一种观看方式：当生活慢下来，光线会替我们把时间留下。</blockquote>')}
+function menuSheet(){modal('<small>MUSEUM MENU</small><h2>美术馆菜单</h2><div class="sheet-buttons"><button data-sheet="home">回到首页</button><button data-sheet="gallery">我的美术馆</button><button data-sheet="notes">策展人手记</button><button data-sheet="prompt">查看 AI Prompt 结构</button><button data-sheet="clear" class="danger">清空本地作品</button></div>')}
+function modal(html){var m=document.createElement('div');m.className='modal';m.innerHTML='<div class="sheet"><button class="close">×</button>'+html+'</div>';document.body.appendChild(m);m.querySelector('.close').onclick=function(){m.remove()};m.onclick=function(e){if(e.target===m)m.remove()};m.querySelectorAll('[data-sheet]').forEach(function(b){b.onclick=function(){var x=this.dataset.sheet;if(x==='clear'){if(confirm('确定清空当前浏览器里的作品吗？'))dbClear().then(function(){state.gallery=[];m.remove();go('gallery')})}else if(x==='prompt'){m.querySelector('.sheet').innerHTML='<button class="close">×</button><small>AI SERVICE</small><h2>当前 Prompt 结构</h2><p>真实 AI 接入时保留前端流程，只替换 services 层：</p><pre>Vision 分析\n→ 展厅推荐\n→ Prompt Builder\n→ 图生图模型\n→ 策展文字\n→ 云存储</pre>';m.querySelector('.close').onclick=function(){m.remove()}}else{m.remove();go(x)}}})}
 
-  function previewFilter(id) {
-    return ({
-      oil:'saturate(1.15) contrast(1.08) sepia(.12)',
-      film:'saturate(.82) contrast(.88) sepia(.1) brightness(1.05)',
-      dream:'saturate(1.2) contrast(.86) brightness(1.08) blur(.3px)',
-      watercolor:'saturate(.86) contrast(.82) brightness(1.12)',
-      print:'grayscale(.75) sepia(.45) contrast(1.25)',
-      editorial:'saturate(.86) contrast(1.08) brightness(1.03)'
-    })[id] || '';
-  }
-
-  function loadingScreen() {
-    return '<main class="screen"><section class="loading-wrap">' +
-      '<div class="loading-polaroid"><img src="'+state.original+'" alt="正在布展的照片"></div>' +
-      '<h1 class="loading-title">正在布展……</h1>' +
-      '<div class="loading-note">你的普通生活，<br>正在被重新挂进美术馆。 ♡</div>' +
-      '<div class="progress-shell"><div id="progressBar" class="progress-bar"></div></div>' +
-      '<div id="progressLabel" class="progress-label">正在整理光线 · 0%</div>' +
-      '</section></main>';
-  }
-
-  function resultScreen() {
-    var item = state.generated;
-    if (!item) return homeScreen();
-    var visible = state.compareMode === 'original' ? item.original : item.image;
-    return '<main class="screen">' +
-      '<header class="topbar">'+backButton()+'<div class="eyebrow">TODAY\'S EXHIBIT</div>'+menuButton()+'</header>' +
-      '<section class="result-frame"><img id="resultImage" src="'+visible+'" alt="生成作品"><div class="exhibit-tag">'+escapeHtml(item.no)+'<br>'+escapeHtml(item.date)+'</div></section>' +
-      '<div class="compare-toggle"><button data-compare="art" class="'+(state.compareMode==='art'?'active':'')+'">作品</button><button data-compare="original" class="'+(state.compareMode==='original'?'active':'')+'">原片</button></div>' +
-      '<section class="result-meta"><h1>'+escapeHtml(item.style.name)+'</h1><div class="en">'+escapeHtml(item.style.en)+'</div></section>' +
-      '<section class="curator-card"><h3>策展人手记</h3><p>'+escapeHtml(item.note)+'</p></section>' +
-      '<section class="action-grid">' +
-      '<button class="action-card" data-action="save"><span>⇩</span><strong>保存作品</strong></button>' +
-      '<button class="action-card" data-action="again"><span>↻</span><strong>再做一幅</strong></button>' +
-      '<button class="action-card" data-action="share"><span>↗</span><strong>分享展签</strong></button>' +
-      '</section></main>' + navHtml('gallery');
-  }
-
-  function galleryScreen() {
-    var content;
-    if (!state.gallery.length) {
-      content = '<section class="empty-state"><div><div class="big">▧</div><h3>展厅还是空的</h3><p>从第一张普通照片开始。<br>日常不需要特别，才值得收藏。</p><button class="primary-btn small" data-action="start">开始新布展</button></div></section>';
-    } else {
-      content = '<section class="gallery-grid">' + state.gallery.map(function (x) {
-        return '<button class="gallery-item" data-open-art="'+x.id+'"><img src="'+x.image+'" alt="'+escapeHtml(x.style.name)+'"><strong>'+escapeHtml(x.style.name)+' · '+escapeHtml(x.no)+'</strong><small>'+escapeHtml(x.date)+'</small></button>';
-      }).join('') + '</section><button class="primary-btn" data-action="start">＋ 开始新布展</button>';
-    }
-    return '<main class="screen"><header class="topbar"><div class="brand-mark"><strong>我的美术馆</strong><span>MY ORDINARY MUSEUM</span></div>'+menuButton()+'</header>' +
-      '<section class="gallery-head"><h1>我的美术馆 ✿</h1><p>共 '+state.gallery.length+' 件作品 · 每一件都来自真实生活</p></section>' + content + '</main>' + navHtml('gallery');
-  }
-
-  function notesScreen() {
-    var generatedNotes = state.gallery.slice(0, 3).map(function (x, i) {
-      var cls = ['yellow','pink','green'][i%3];
-      return '<article class="note-card '+cls+'"><small>'+escapeHtml(x.date)+' · '+escapeHtml(x.no)+'</small><p>'+escapeHtml(x.note)+'</p></article>';
-    }).join('');
-    var defaults = '';
-    if (!generatedNotes) {
-      defaults = '<article class="note-card yellow"><small>今天</small><p>我们总是急着把日子过完，却忘了，那些普通瞬间，才是真正的生活。</p></article>' +
-      '<article class="note-card pink"><small>给下一张照片</small><p>同一个地点，不同的光线，不同的心情，就能变成不一样的作品。</p></article>' +
-      '<article class="note-card green"><small>馆内提醒</small><p>生活没有标准答案，但它值得被认真看见。</p></article>';
-    }
-    return '<main class="screen"><header class="topbar">'+backButton()+'<div class="eyebrow">CURATOR NOTES</div><span style="width:42px"></span></header>' +
-      '<h1 class="screen-title">策展人手记 ✎</h1><p class="screen-sub">不是评价照片好不好，而是记录这一刻为什么值得被看见。</p>' +
-      '<section class="notebook">'+(generatedNotes || defaults)+'</section></main>' + navHtml('notes');
-  }
-
-  function menuSheet() {
-    var wrap = document.createElement('div');
-    wrap.className = 'modal-backdrop';
-    wrap.innerHTML = '<section class="sheet"><div class="sheet-handle"></div><h2>美术馆菜单</h2><div class="menu-list">' +
-      '<button data-sheet="about"><strong>关于这个原型</strong><br><small>本地运行 · 无需 API Key</small></button>' +
-      '<button data-sheet="prompts"><strong>查看当前 AI Prompt 结构</strong><br><small>为之后接真实图生图接口预留</small></button>' +
-      '<button class="danger" data-sheet="clear"><strong>清空本地美术馆</strong><br><small>删除当前浏览器里的作品</small></button>' +
-      '<button data-sheet="close"><strong>关闭</strong></button></div></section>';
-    document.body.appendChild(wrap);
-    wrap.addEventListener('click', function(e){ if(e.target===wrap) wrap.remove(); });
-    wrap.querySelectorAll('[data-sheet]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var a=btn.getAttribute('data-sheet');
-        if(a==='close') return wrap.remove();
-        if(a==='about'){ toast('当前是可直接运行的本地 Web MVP'); return; }
-        if(a==='prompts'){
-          var p=AI.styles.map(function(s){return s.name+'：'+s.prompt;}).join('\n\n');
-          if(navigator.clipboard) navigator.clipboard.writeText(p).then(function(){toast('六套 Prompt 已复制');});
-          else toast('当前浏览器不支持一键复制');
-          return;
-        }
-        if(a==='clear'){
-          dbClear().then(function(){state.gallery=[];wrap.remove();render('gallery');toast('本地美术馆已清空');});
-        }
-      });
-    });
-  }
-
-  function render(route) {
-    state.route = route || state.route;
-    window.scrollTo(0,0);
-    if (state.route === 'home') app.innerHTML = homeScreen();
-    if (state.route === 'upload') app.innerHTML = uploadScreen();
-    if (state.route === 'styles') app.innerHTML = styleScreen();
-    if (state.route === 'loading') app.innerHTML = loadingScreen();
-    if (state.route === 'result') app.innerHTML = resultScreen();
-    if (state.route === 'gallery') app.innerHTML = galleryScreen();
-    if (state.route === 'notes') app.innerHTML = notesScreen();
-    bind();
-  }
-
-  function bind() {
-    app.querySelectorAll('[data-nav]').forEach(function (el) {
-      el.onclick = function () { render(el.getAttribute('data-nav')); };
-    });
-    app.querySelectorAll('[data-action]').forEach(function (el) {
-      el.onclick = function () {
-        var a = el.getAttribute('data-action');
-        if (a === 'start') { state.original=null; state.generated=null; render('upload'); }
-        if (a === 'back') { goBack(); }
-        if (a === 'menu') menuSheet();
-        if (a === 'pick-photo') photoInput.click();
-        if (a === 'generate') generate();
-        if (a === 'again') { state.generated=null; state.compareMode='art'; render('styles'); }
-        if (a === 'save') downloadCurrent();
-        if (a === 'share') shareCurrent();
-      };
-    });
-    app.querySelectorAll('[data-style]').forEach(function (el) {
-      el.onclick = function () { state.selectedStyle = el.getAttribute('data-style'); render('styles'); };
-    });
-    app.querySelectorAll('[data-compare]').forEach(function (el) {
-      el.onclick = function () { state.compareMode=el.getAttribute('data-compare'); render('result'); };
-    });
-    app.querySelectorAll('[data-open-art]').forEach(function (el) {
-      el.onclick = function () {
-        var id = Number(el.getAttribute('data-open-art'));
-        var item = state.gallery.find(function(x){return x.id===id;});
-        if(item){ state.generated=item; state.original=item.original; state.selectedStyle=item.style.id; state.compareMode='art'; render('result'); }
-      };
-    });
-  }
-
-  function goBack() {
-    if (state.route === 'upload') return render('home');
-    if (state.route === 'styles') return render('upload');
-    if (state.route === 'result') return render('gallery');
-    if (state.route === 'notes') return render('home');
-    return render('home');
-  }
-
-  photoInput.addEventListener('change', function (e) {
-    var file = e.target.files && e.target.files[0];
-    if (!file) return;
-    if (file.size > 18 * 1024 * 1024) { toast('图片太大了，建议选择 18MB 以内照片'); return; }
-    var reader = new FileReader();
-    reader.onload = function () {
-      state.original = reader.result;
-      state.selectedStyle = 'film';
-      AI.analyzePhoto(state.original).then(function(a){ if(a.recommendedStyle) state.selectedStyle=a.recommendedStyle; render('styles'); });
-    };
-    reader.readAsDataURL(file);
-    photoInput.value = '';
-  });
-
-  function generate() {
-    if (!state.original) return render('upload');
-    render('loading');
-    var label = document.getElementById('progressLabel');
-    var bar = document.getElementById('progressBar');
-    var fake = 0;
-    var words = ['正在整理光线','正在选择纸张','正在重新观看这个瞬间','正在写展签'];
-    var timer = setInterval(function(){
-      fake=Math.min(88,fake+Math.ceil(Math.random()*7));
-      if(bar) bar.style.width=fake+'%';
-      if(label) label.textContent=words[Math.min(words.length-1,Math.floor(fake/25))]+' · '+fake+'%';
-    },130);
-
-    AI.generateArtwork(state.original, state.selectedStyle, function(p){
-      if(bar && p>fake){fake=p;bar.style.width=p+'%';}
-    }).then(function(res){
-      clearInterval(timer);
-      var id=Date.now();
-      var item={id:id,no:exhibitNo(id),date:today(),image:res.image,original:state.original,style:res.style,note:res.note,prompt:res.prompt};
-      state.generated=item;
-      state.compareMode='art';
-      dbPut(item).then(function(){return dbGetAll();}).then(function(list){state.gallery=list;setTimeout(function(){render('result');},260);});
-    }).catch(function(){
-      clearInterval(timer);
-      toast('布展失败了，请换一张照片再试');
-      render('styles');
-    });
-  }
-
-  function downloadCurrent() {
-    if (!state.generated) return;
-    var a=document.createElement('a');
-    a.href=state.generated.image;
-    a.download='ordinary-museum-'+state.generated.no.replace('.','-')+'.jpg';
-    document.body.appendChild(a);a.click();a.remove();
-    toast('作品已准备保存');
-  }
-
-  function dataUrlToFile(dataUrl, filename) {
-    var arr=dataUrl.split(',');
-    var mime=(arr[0].match(/:(.*?);/)||[])[1]||'image/jpeg';
-    var bstr=atob(arr[1]);var n=bstr.length;var u8=new Uint8Array(n);
-    while(n--)u8[n]=bstr.charCodeAt(n);
-    return new File([u8],filename,{type:mime});
-  }
-
-  function shareCurrent() {
-    if (!state.generated) return;
-    var text='我把一个普通瞬间挂进了「普通生活美术馆」：'+state.generated.style.name+' · '+state.generated.no;
-    try {
-      var file=dataUrlToFile(state.generated.image,'ordinary-museum.jpg');
-      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-        navigator.share({title:'普通生活美术馆',text:text,files:[file]}).catch(function(){});
-      } else if(navigator.share){ navigator.share({title:'普通生活美术馆',text:text}).catch(function(){}); }
-      else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('展签文字已复制');});}
-      else toast('当前浏览器不支持系统分享');
-    } catch(e){toast('当前浏览器不支持系统分享');}
-  }
-
-  dbGetAll().then(function(list){ state.gallery=list; render('home'); });
-
-  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
-    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
-  }
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){})})}
+dbAll().then(function(g){state.gallery=g;render()});
 })();
