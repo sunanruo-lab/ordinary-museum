@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7efe1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="description" content="普通生活美术馆：把普通日子，挂进美术馆。" />
+  <style>
+:root {
+  --paper: #f7efe1;
+  --paper-2: #fffaf1;
+  --ink: #2f2a26;
+  --muted: #786f66;
+  --line: rgba(72, 60, 47, .16);
+  --coral: #df755f;
+  --orange: #e38d52;
+  --yellow: #f3d772;
+  --green: #aabf8a;
+  --blue: #9fc4cd;
+  --pink: #e8a7a4;
+  --lilac: #baa9ce;
+  --shadow: 0 18px 50px rgba(71, 52, 35, .12);
+  --shadow-soft: 0 10px 28px rgba(71, 52, 35, .09);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 18% 14%, rgba(255,255,255,.7), transparent 24%),
+    radial-gradient(circle at 90% 0%, rgba(232,167,164,.16), transparent 22%),
+    repeating-linear-gradient(0deg, rgba(80,55,30,.012) 0 1px, transparent 1px 4px),
+    var(--paper);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+button, input { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+img { max-width: 100%; }
+
+.sr-only {
+  position: fixed;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.app-shell {
+  width: min(100%, 760px);
+  min-height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  padding-bottom: calc(92px + var(--safe-b));
+}
+
+.screen {
+  min-height: 100vh;
+  padding: 22px 20px calc(110px + var(--safe-b));
+  position: relative;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.brand-mark {
+  line-height: 1.05;
+  letter-spacing: .02em;
+}
+.brand-mark strong {
+  display: block;
+  font: 700 21px/1.05 Georgia, "Songti SC", "STSong", serif;
+}
+.brand-mark span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: .2em;
+}
+
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  background: rgba(255,255,255,.34);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 2px 3px 0 rgba(47,42,38,.12);
+}
+.icon-btn:active { transform: translate(1px, 1px); box-shadow: none; }
+
+.hero-copy { padding-top: 8px; }
+.eyebrow {
+  font: 700 10px/1.2 Georgia, serif;
+  letter-spacing: .22em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.hero-title, .screen-title {
+  font-family: Georgia, "Songti SC", "STSong", serif;
+  font-weight: 700;
+  letter-spacing: -.035em;
+}
+.hero-title {
+  font-size: clamp(48px, 13vw, 74px);
+  line-height: 1.03;
+  margin: 16px 0 14px;
+}
+.hero-title em {
+  color: var(--coral);
+  font-style: normal;
+  position: relative;
+  white-space: nowrap;
+}
+.hero-title em::after {
+  content: "";
+  position: absolute;
+  left: 4%; right: -2%; bottom: -5px;
+  height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='12' viewBox='0 0 240 12'%3E%3Cpath d='M2 8C44 3 83 9 121 6s74-3 117 1' fill='none' stroke='%23e8ad58' stroke-width='5' stroke-linecap='round' opacity='.8'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+}
+.hero-sub {
+  max-width: 520px;
+  margin: 0;
+  color: #625b54;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.doodle-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 18px 0 4px;
+  color: var(--orange);
+  font-size: 22px;
+  transform: rotate(-2deg);
+}
+
+.polaroid {
+  width: min(88%, 430px);
+  margin: 34px auto 0;
+  background: #fffaf3;
+  padding: 12px 12px 40px;
+  box-shadow: var(--shadow);
+  transform: rotate(-2.4deg);
+  position: relative;
+  border: 1px solid rgba(78,57,40,.08);
+}
+.polaroid::before {
+  content: "";
+  position: absolute;
+  width: 82px;
+  height: 25px;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(3deg);
+  background: rgba(225, 145, 114, .55);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.24);
+}
+.hero-art {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background:
+    linear-gradient(155deg, rgba(121,173,190,.8) 0 36%, rgba(245,220,161,.55) 36% 44%, rgba(84,121,99,.8) 44% 54%, rgba(210,145,99,.85) 54% 64%, rgba(77,88,72,.9) 64% 100%);
+  position: relative;
+}
+.hero-art::before,
+.hero-art::after {
+  content: "";
+  position: absolute;
+  border: 2px solid rgba(255,255,255,.72);
+  border-radius: 50%;
+}
+.hero-art::before { width: 150px; height: 70px; left: -38px; top: 78px; transform: rotate(-12deg); }
+.hero-art::after { width: 210px; height: 90px; right: -70px; bottom: 86px; transform: rotate(18deg); }
+.hero-art .tram {
+  position: absolute;
+  left: 13%;
+  bottom: 18%;
+  width: 54%;
+  height: 22%;
+  background: #d8b856;
+  border: 3px solid rgba(61,58,42,.65);
+  border-radius: 14px 17px 8px 8px;
+  box-shadow: inset 0 -14px rgba(105,126,79,.55);
+}
+.hero-art .tram::before {
+  content: "";
+  position: absolute;
+  inset: 16% 8% auto;
+  height: 35%;
+  background: repeating-linear-gradient(90deg, #8bc0c8 0 20%, #f5e4bb 20% 25%);
+  border: 2px solid rgba(61,58,42,.5);
+}
+.hero-art .rail {
+  position: absolute;
+  width: 82%;
+  height: 2px;
+  background: rgba(50,47,42,.7);
+  right: -10%;
+  bottom: 8%;
+  transform: rotate(-14deg);
+  box-shadow: 0 12px 0 rgba(50,47,42,.55), 0 24px 0 rgba(50,47,42,.35);
+}
+.polaroid-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 8px;
+  margin-top: 12px;
+  font-family: Georgia, "Songti SC", serif;
+}
+.polaroid-caption strong { font-size: 17px; }
+.polaroid-caption small { color: var(--muted); }
+
+.primary-btn, .paper-btn, .secondary-btn {
+  border: 0;
+  cursor: pointer;
+}
+.primary-btn {
+  width: 100%;
+  margin-top: 28px;
+  padding: 17px 20px;
+  border-radius: 999px;
+  color: #fffaf2;
+  font-weight: 750;
+  letter-spacing: .06em;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,.12), transparent 28%),
+    var(--coral);
+  box-shadow: 0 7px 0 rgba(118,63,48,.17), var(--shadow-soft);
+}
+.primary-btn:active { transform: translateY(2px); box-shadow: 0 4px 0 rgba(118,63,48,.14); }
+.primary-btn.small { width: auto; margin: 0; padding: 12px 18px; }
+.secondary-btn {
+  padding: 13px 18px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(47,42,38,.45);
+  background: rgba(255,255,255,.35);
+  color: var(--ink);
+}
+
+.hand-note {
+  margin-top: 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.screen-title {
+  margin: 8px 0 6px;
+  font-size: clamp(34px, 10vw, 52px);
+  line-height: 1.08;
+}
+.screen-sub {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.upload-zone {
+  margin-top: 28px;
+  min-height: 350px;
+  border: 2px dashed rgba(80,69,58,.25);
+  border-radius: 28px;
+  background: rgba(255,255,255,.28);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 34px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone::before {
+  content: "";
+  position: absolute;
+  width: 115px; height: 28px;
+  background: rgba(243,215,114,.5);
+  top: 24px; right: -22px;
+  transform: rotate(18deg);
+}
+.upload-zone .camera {
+  width: 76px; height: 62px;
+  margin: 0 auto 18px;
+  border: 4px solid var(--ink);
+  border-radius: 15px;
+  position: relative;
+  transform: rotate(-3deg);
+}
+.upload-zone .camera::before {
+  content: "";
+  position: absolute;
+  width: 26px; height: 16px;
+  left: 9px; top: -14px;
+  border: 4px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+}
+.upload-zone .camera::after {
+  content: "";
+  position: absolute;
+  width: 24px; height: 24px;
+  left: 22px; top: 15px;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+}
+.upload-zone strong { display: block; font: 700 22px/1.3 Georgia, "Songti SC", serif; }
+.upload-zone p { margin: 10px 0 20px; color: var(--muted); line-height: 1.7; }
+.upload-zone .paper-btn {
+  padding: 13px 20px;
+  border-radius: 12px 20px 14px 18px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 700;
+  transform: rotate(-1deg);
+  box-shadow: 3px 4px 0 rgba(71,52,35,.12);
+}
+
+.preview-strip {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 14px;
+  align-items: center;
+  background: rgba(255,255,255,.34);
+  border: 1px solid var(--line);
+  padding: 10px;
+  border-radius: 18px;
+}
+.preview-strip img {
+  width: 92px; height: 92px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.preview-strip strong { display: block; }
+.preview-strip small { color: var(--muted); }
+
+.style-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.style-card {
+  border: 0;
+  text-align: left;
+  padding: 10px 10px 15px;
+  border-radius: 8px 18px 12px 16px;
+  color: var(--ink);
+  cursor: pointer;
+  position: relative;
+  min-width: 0;
+  box-shadow: 3px 5px 0 rgba(72,55,40,.08);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.style-card:nth-child(2n) { transform: rotate(1.2deg); }
+.style-card:nth-child(2n+1) { transform: rotate(-.9deg); }
+.style-card.selected {
+  outline: 3px solid rgba(47,42,38,.78);
+  outline-offset: 2px;
+  transform: translateY(-2px) rotate(0deg);
+  box-shadow: 0 9px 0 rgba(72,55,40,.09);
+}
+.style-card::before {
+  content: "";
+  position: absolute;
+  top: -8px; left: 50%;
+  width: 48px; height: 16px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: rgba(255,255,255,.38);
+}
+.style-thumb {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  background: rgba(255,255,255,.4);
+}
+.style-card h3 { margin: 10px 0 2px; font: 700 18px/1.2 Georgia, "Songti SC", serif; }
+.style-card .en { display:block; color: rgba(47,42,38,.6); font: 700 8px/1.2 Georgia, serif; letter-spacing: .12em; }
+.style-card p { margin: 7px 0 0; font-size: 11px; line-height: 1.5; color: rgba(47,42,38,.72); }
+.style-card[data-tone="yellow"] { background: #f2d978; }
+.style-card[data-tone="peach"] { background: #efb18e; }
+.style-card[data-tone="lilac"] { background: #c7b5d9; }
+.style-card[data-tone="mint"] { background: #b9cfad; }
+.style-card[data-tone="kraft"] { background: #d2b694; }
+.style-card[data-tone="pink"] { background: #e7adaf; }
+
+.sticky-actions {
+  position: sticky;
+  bottom: calc(78px + var(--safe-b));
+  z-index: 4;
+  margin-top: 24px;
+  padding: 10px;
+  border-radius: 999px;
+  background: rgba(247,239,225,.84);
+  backdrop-filter: blur(12px);
+}
+
+.loading-wrap {
+  display: grid;
+  min-height: 72vh;
+  align-content: center;
+  text-align: center;
+}
+.loading-polaroid {
+  width: min(76vw, 360px);
+  margin: 0 auto 30px;
+  background: #fff9f0;
+  padding: 10px 10px 30px;
+  box-shadow: var(--shadow);
+  transform: rotate(1.8deg);
+  position: relative;
+}
+.loading-polaroid::before,
+.result-frame::before {
+  content: "";
+  position: absolute;
+  width: 72px; height: 20px;
+  top: -9px; left: 50%;
+  transform: translateX(-50%) rotate(-5deg);
+  background: rgba(243,215,114,.58);
+}
+.loading-polaroid img { display:block; width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: saturate(.72) contrast(.9) brightness(1.08); }
+.loading-title { font: 700 38px/1.1 Georgia, "Songti SC", serif; margin: 0 0 14px; }
+.loading-note {
+  display: inline-block;
+  background: #f6d879;
+  padding: 12px 18px;
+  transform: rotate(-1deg);
+  box-shadow: 2px 4px 0 rgba(71,52,35,.09);
+  line-height: 1.7;
+}
+.progress-shell {
+  width: min(82%, 390px);
+  height: 12px;
+  margin: 24px auto 8px;
+  background: rgba(47,42,38,.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-bar { width: 0; height: 100%; background: var(--coral); border-radius: inherit; transition: width .15s linear; }
+.progress-label { color: var(--muted); font-size: 12px; }
+
+.result-frame {
+  background: #fffaf1;
+  padding: 11px 11px 43px;
+  box-shadow: var(--shadow);
+  position: relative;
+  transform: rotate(-.8deg);
+  margin-top: 18px;
+}
+.result-frame img { display:block; width:100%; max-height: 68vh; object-fit: contain; background: #eee5d7; }
+.exhibit-tag {
+  position: absolute;
+  top: 21px; right: 20px;
+  background: var(--yellow);
+  padding: 8px 10px;
+  transform: rotate(4deg);
+  font: 700 11px/1.45 Georgia, serif;
+  box-shadow: 2px 3px 0 rgba(71,52,35,.12);
+}
+.result-meta { margin: 28px 4px 0; }
+.result-meta h1 { margin: 0; font: 700 36px/1.05 Georgia, "Songti SC", serif; }
+.result-meta .en { margin-top: 4px; color: var(--muted); font: 700 10px/1 Georgia, serif; letter-spacing:.16em; }
+.curator-card {
+  margin-top: 22px;
+  padding: 20px 20px 18px;
+  background: #efb3af;
+  border-radius: 6px 16px 9px 14px;
+  position: relative;
+  transform: rotate(.5deg);
+  box-shadow: 3px 5px 0 rgba(72,55,40,.08);
+}
+.curator-card::after {
+  content: "✿";
+  position: absolute;
+  right: 16px; top: 8px;
+  font-size: 28px;
+  color: rgba(255,255,255,.55);
+  transform: rotate(14deg);
+}
+.curator-card h3 { margin:0 0 10px; font:700 18px/1.2 Georgia, "Songti SC", serif; }
+.curator-card p { margin:0; font-family: Georgia, "Songti SC", serif; font-size:17px; line-height:1.75; }
+
+.compare-toggle {
+  display:flex;
+  gap:8px;
+  margin-top:18px;
+  background: rgba(255,255,255,.32);
+  border-radius:999px;
+  padding:6px;
+}
+.compare-toggle button {
+  flex:1;
+  border:0;
+  border-radius:999px;
+  padding:10px;
+  background:transparent;
+  color:var(--muted);
+}
+.compare-toggle button.active { background:var(--ink); color:#fffaf1; }
+
+.action-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:20px;
+}
+.action-card {
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.32);
+  border-radius:18px;
+  padding:14px 8px;
+  text-align:center;
+  cursor:pointer;
+  color:var(--ink);
+}
+.action-card strong { display:block; font-size:12px; margin-top:5px; }
+.action-card span { font-size:22px; }
+
+.gallery-head {
+  background: rgba(255,255,255,.28);
+  border-radius: 22px 22px 8px 8px;
+  padding: 20px;
+  border-top: 8px dotted rgba(47,42,38,.25);
+}
+.gallery-head h1 { margin:0; font:700 40px/1 Georgia, "Songti SC", serif; }
+.gallery-head p { margin:8px 0 0; color:var(--muted); }
+.gallery-grid {
+  margin-top:22px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.gallery-item {
+  border:0;
+  background:#fffaf1;
+  padding:8px 8px 26px;
+  box-shadow: var(--shadow-soft);
+  cursor:pointer;
+  position:relative;
+  text-align:left;
+  transform:rotate(-1deg);
+}
+.gallery-item:nth-child(3n+2){ transform:rotate(1.5deg); }
+.gallery-item:nth-child(3n){ transform:rotate(.4deg); }
+.gallery-item::before {
+  content:"";
+  position:absolute;
+  width:42px;height:14px;
+  left:50%;top:-7px;
+  transform:translateX(-50%) rotate(3deg);
+  background:rgba(227,141,82,.42);
+}
+.gallery-item img { width:100%; aspect-ratio:4/5; object-fit:cover; display:block; }
+.gallery-item strong { display:block; margin-top:9px; font:700 13px/1.2 Georgia, "Songti SC", serif; }
+.gallery-item small { color:var(--muted); font-size:10px; }
+.empty-state {
+  margin-top:24px;
+  min-height:360px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  border:2px dashed rgba(80,69,58,.2);
+  border-radius:28px;
+  padding:28px;
+}
+.empty-state .big { font-size:52px; }
+.empty-state h3 { font:700 26px/1.2 Georgia,"Songti SC",serif; margin:10px 0; }
+.empty-state p { color:var(--muted); line-height:1.7; }
+
+.notebook {
+  margin-top:20px;
+  padding:26px 18px 28px 28px;
+  background:
+    linear-gradient(90deg, transparent 0 19px, rgba(205,105,101,.28) 19px 20px, transparent 20px),
+    repeating-linear-gradient(0deg, transparent 0 29px, rgba(99,141,160,.12) 29px 30px),
+    #fffaf1;
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  position:relative;
+}
+.notebook::before {
+  content:"";
+  position:absolute;
+  left:8px; top:18px; bottom:18px;
+  width:10px;
+  background:radial-gradient(circle, var(--paper) 0 3px, transparent 3.5px) center top/10px 24px repeat-y;
+}
+.note-card {
+  margin:0 0 18px;
+  padding:16px 17px 15px;
+  border-radius:4px 14px 7px 12px;
+  box-shadow:2px 3px 0 rgba(71,52,35,.08);
+  transform:rotate(-.5deg);
+}
+.note-card:nth-child(2n){ transform:rotate(.7deg); }
+.note-card.yellow{ background:#f2dc86; }
+.note-card.pink{ background:#efb4b0; }
+.note-card.green{ background:#bdcfaa; }
+.note-card.blue{ background:#b6d2d7; }
+.note-card small { color:rgba(47,42,38,.62); font-family:Georgia,serif; }
+.note-card p { margin:8px 0 0; font: 16px/1.75 Georgia,"Songti SC",serif; }
+
+.bottom-nav {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(10px + var(--safe-b));
+  transform: translateX(-50%);
+  width: min(calc(100% - 28px), 700px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 7px;
+  border: 1px solid rgba(70,57,45,.12);
+  background: rgba(255,250,241,.88);
+  backdrop-filter: blur(16px);
+  border-radius: 26px;
+  box-shadow: 0 16px 40px rgba(71,52,35,.16);
+}
+.bottom-nav button {
+  border:0;
+  background:transparent;
+  border-radius:20px;
+  padding:10px 6px 8px;
+  color:var(--muted);
+  cursor:pointer;
+}
+.bottom-nav button.active { background:rgba(227,117,95,.12); color:var(--coral); }
+.bottom-nav span { display:block; font-size:20px; line-height:1; }
+.bottom-nav small { display:block; margin-top:5px; font-size:10px; font-weight:700; }
+
+.toast {
+  position: fixed;
+  z-index: 30;
+  left:50%;
+  bottom:calc(96px + var(--safe-b));
+  transform:translateX(-50%) translateY(10px);
+  padding:11px 16px;
+  border-radius:999px;
+  background:rgba(47,42,38,.9);
+  color:#fffaf1;
+  font-size:12px;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s ease;
+  max-width:calc(100vw - 40px);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+.modal-backdrop {
+  position: fixed;
+  inset:0;
+  z-index:40;
+  background:rgba(47,42,38,.42);
+  backdrop-filter:blur(4px);
+  display:grid;
+  align-items:end;
+}
+.sheet {
+  background:var(--paper-2);
+  border-radius:28px 28px 0 0;
+  padding:12px 18px calc(22px + var(--safe-b));
+  max-height:86vh;
+  overflow:auto;
+}
+.sheet-handle { width:42px;height:5px;background:rgba(47,42,38,.18);border-radius:999px;margin:0 auto 15px; }
+.sheet h2 { font:700 28px/1.1 Georgia,"Songti SC",serif; margin:0 0 16px; }
+.menu-list { display:grid; gap:10px; }
+.menu-list button { border:1px solid var(--line); background:rgba(255,255,255,.32); border-radius:16px; padding:14px; text-align:left; color:var(--ink); }
+.menu-list button.danger { color:#a14e42; }
+
+@media (min-width: 760px) {
+  body::before, body::after {
+    content:"";
+    position:fixed;
+    top:0;bottom:0;
+    width:1px;
+    background:rgba(80,60,40,.08);
+  }
+  body::before { left:calc(50% - 381px); }
+  body::after { right:calc(50% - 381px); }
+  .screen { padding-left:44px; padding-right:44px; }
+  .style-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .gallery-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .hero-title { font-size:76px; }
+}
+
+  </style>
+  <title>普通生活美术馆</title>
+</head>
+<body>
+  <div id="app" class="app-shell" aria-live="polite"></div>
+  <input id="photoInput" class="sr-only" type="file" accept="image/*" />
+  <script>
+(function (global) {
+  'use strict';
+
+  var styles = [
+    {
+      id: 'oil', name: '古典油画', en: 'CLASSICAL OIL', tone: 'yellow',
+      desc: '把日常光线，沉淀成画布上的时间。',
+      note: '这一刻没有被夸张，只是被光线认真保存了下来。',
+      prompt: '保留原始构图和人物身份，将照片转化为克制的古典油画质感；自然笔触、厚涂层次、柔和暗部、温暖博物馆灯光。'
+    },
+    {
+      id: 'film', name: '法式胶片', en: 'FRENCH FILM', tone: 'peach',
+      desc: '像一部旧电影里，刚刚停住的一帧。',
+      note: '日子没有变旧，只是光线开始有了时间感。',
+      prompt: '保留原始构图，将照片转化为温暖法式胶片摄影；低对比、轻微褪色、细颗粒、自然肤色与柔和高光。'
+    },
+    {
+      id: 'dream', name: '梦境印象', en: 'DREAM IMPRESSION', tone: 'lilac',
+      desc: '现实边缘轻轻融化，像醒来前的一秒。',
+      note: '现实没有消失，它只是暂时把边缘交给了梦。',
+      prompt: '在保留主体可识别性的前提下，转化为梦境印象风；柔焦、轻微色彩漂移、空气感、朦胧层次、诗意光晕。'
+    },
+    {
+      id: 'watercolor', name: '清透水彩', en: 'WATERCOLOR', tone: 'mint',
+      desc: '让颜色松开一点，让呼吸留在纸上。',
+      note: '被水晕开的不是细节，而是这一刻原本紧绷的边界。',
+      prompt: '将照片转化为清透水彩插画；保留构图，减少硬边，水彩纸纹理、轻盈留白、透明叠色、自然渗化。'
+    },
+    {
+      id: 'print', name: '复古版画', en: 'VINTAGE PRINT', tone: 'kraft',
+      desc: '更强的线条与纸张肌理，像旧书插页。',
+      note: '普通的场景一旦只剩线条，反而更像一段值得留下的证词。',
+      prompt: '将照片转化为复古版画；高对比线条、旧纸张纹理、有限色彩、蚀刻感、细密排线，保留主体轮廓。'
+    },
+    {
+      id: 'editorial', name: '艺术杂志', en: 'EDITORIAL', tone: 'pink',
+      desc: '克制构图，把普通瞬间变成编辑选片。',
+      note: '生活没有被包装，只是终于被当成一张值得刊登的照片。',
+      prompt: '将照片处理为当代艺术杂志编辑选片风格；干净构图、克制色彩、适度留白、高级纸刊质感，保留真实感。'
+    }
+  ];
+
+  function getStyle(id) {
+    return styles.find(function (s) { return s.id === id; }) || styles[1];
+  }
+
+  function analyzePhoto(dataUrl) {
+    return Promise.resolve({
+      dominantMood: 'ordinary-poetic',
+      subjectConfidence: 0.92,
+      recommendedStyle: 'film',
+      dataUrl: dataUrl
+    });
+  }
+
+  function promptFor(styleId) {
+    return getStyle(styleId).prompt;
+  }
+
+  function drawImageCover(ctx, img, width, height) {
+    var r = Math.max(width / img.width, height / img.height);
+    var w = img.width * r;
+    var h = img.height * r;
+    var x = (width - w) / 2;
+    var y = (height - h) / 2;
+    ctx.drawImage(img, x, y, w, h);
+  }
+
+  function addPaperGrain(ctx, width, height, strength) {
+    var count = Math.floor(width * height / 240);
+    ctx.save();
+    for (var i = 0; i < count; i++) {
+      var a = Math.random() * strength;
+      ctx.fillStyle = 'rgba(75,55,35,' + a.toFixed(3) + ')';
+      ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
+    }
+    ctx.restore();
+  }
+
+  function addSoftLight(ctx, width, height, color, alpha) {
+    var g = ctx.createRadialGradient(width * .28, height * .18, 0, width * .28, height * .18, width * .75);
+    g.addColorStop(0, color.replace('ALPHA', alpha));
+    g.addColorStop(1, color.replace('ALPHA', '0'));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  function generateArtwork(dataUrl, styleId, progressCb) {
+    var style = getStyle(styleId);
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var max = 1600;
+          var scale = Math.min(1, max / Math.max(img.width, img.height));
+          var width = Math.max(1, Math.round(img.width * scale));
+          var height = Math.max(1, Math.round(img.height * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          var ctx = canvas.getContext('2d');
+
+          if (progressCb) progressCb(24);
+          ctx.save();
+          if (styleId === 'oil') ctx.filter = 'saturate(1.18) contrast(1.12) sepia(.12)';
+          if (styleId === 'film') ctx.filter = 'saturate(.84) contrast(.88) sepia(.11) brightness(1.03)';
+          if (styleId === 'dream') ctx.filter = 'saturate(1.2) contrast(.88) brightness(1.08) blur(.35px)';
+          if (styleId === 'watercolor') ctx.filter = 'saturate(.88) contrast(.82) brightness(1.12)';
+          if (styleId === 'print') ctx.filter = 'grayscale(.8) sepia(.45) contrast(1.35) brightness(.96)';
+          if (styleId === 'editorial') ctx.filter = 'saturate(.88) contrast(1.08) brightness(1.04)';
+          drawImageCover(ctx, img, width, height);
+          ctx.restore();
+
+          if (progressCb) progressCb(52);
+          ctx.save();
+          if (styleId === 'oil') {
+            ctx.globalCompositeOperation = 'soft-light';
+            ctx.fillStyle = 'rgba(173,105,55,.17)';
+            ctx.fillRect(0,0,width,height);
+            addPaperGrain(ctx,width,height,.045);
+          } else if (styleId === 'film') {
+            addSoftLight(ctx,width,height,'rgba(255,218,170,ALPHA)',.28);
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillStyle='rgba(244,209,184,.08)';ctx.fillRect(0,0,width,height);
+            addPaperGrain(ctx,width,height,.07);
+          } else if (styleId === 'dream') {
+            addSoftLight(ctx,width,height,'rgba(224,188,255,ALPHA)',.32);
+            var g = ctx.createLinearGradient(0,0,width,height);
+            g.addColorStop(0,'rgba(118,177,205,.12)');g.addColorStop(1,'rgba(230,154,196,.16)');
+            ctx.fillStyle=g;ctx.fillRect(0,0,width,height);
+          } else if (styleId === 'watercolor') {
+            ctx.globalCompositeOperation='screen';
+            ctx.fillStyle='rgba(255,250,238,.16)';ctx.fillRect(0,0,width,height);
+            addPaperGrain(ctx,width,height,.038);
+          } else if (styleId === 'print') {
+            ctx.globalCompositeOperation='multiply';
+            ctx.fillStyle='rgba(111,78,44,.08)';ctx.fillRect(0,0,width,height);
+            addPaperGrain(ctx,width,height,.09);
+          } else if (styleId === 'editorial') {
+            var margin = Math.round(Math.min(width,height) * .022);
+            ctx.strokeStyle='rgba(255,250,241,.78)';ctx.lineWidth=margin;
+            ctx.strokeRect(margin/2,margin/2,width-margin,height-margin);
+          }
+          ctx.restore();
+
+          if (progressCb) progressCb(78);
+          setTimeout(function(){
+            if (progressCb) progressCb(100);
+            resolve({
+              image: canvas.toDataURL('image/jpeg', .9),
+              style: style,
+              note: style.note,
+              prompt: style.prompt
+            });
+          }, 220);
+        } catch (e) { reject(e); }
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
+  global.OrdinaryMuseumAI = {
+    styles: styles,
+    getStyle: getStyle,
+    analyzePhoto: analyzePhoto,
+    promptFor: promptFor,
+    generateArtwork: generateArtwork
+  };
+})(window);
+
+  </script>
+  <script>
+(function () {
+  'use strict';
+
+  var AI = window.OrdinaryMuseumAI;
+  var app = document.getElementById('app');
+  var photoInput = document.getElementById('photoInput');
+  var state = {
+    route: 'home',
+    original: null,
+    selectedStyle: 'film',
+    generated: null,
+    compareMode: 'art',
+    gallery: []
+  };
+
+  var DB_NAME = 'ordinary-museum-db';
+  var STORE = 'artworks';
+
+  function openDB() {
+    return new Promise(function (resolve, reject) {
+      if (!('indexedDB' in window)) return resolve(null);
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function () {
+        if (!req.result.objectStoreNames.contains(STORE)) {
+          req.result.createObjectStore(STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { resolve(null); };
+    });
+  }
+
+  function dbGetAll() {
+    return openDB().then(function (db) {
+      if (!db) {
+        try { return JSON.parse(localStorage.getItem('olm_gallery_v2') || '[]'); }
+        catch (e) { return []; }
+      }
+      return new Promise(function (resolve) {
+        var tx = db.transaction(STORE, 'readonly');
+        var req = tx.objectStore(STORE).getAll();
+        req.onsuccess = function () { resolve((req.result || []).sort(function(a,b){return b.id-a.id;})); };
+        req.onerror = function () { resolve([]); };
+      });
+    });
+  }
+
+  function dbPut(item) {
+    return openDB().then(function (db) {
+      if (!db) {
+        try {
+          var list = JSON.parse(localStorage.getItem('olm_gallery_v2') || '[]');
+          list.unshift(item);
+          localStorage.setItem('olm_gallery_v2', JSON.stringify(list.slice(0, 12)));
+        } catch (e) {}
+        return;
+      }
+      return new Promise(function (resolve) {
+        var tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).put(item);
+        tx.oncomplete = resolve;
+        tx.onerror = resolve;
+      });
+    });
+  }
+
+  function dbClear() {
+    return openDB().then(function (db) {
+      if (!db) { localStorage.removeItem('olm_gallery_v2'); return; }
+      return new Promise(function(resolve){
+        var tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=resolve;
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>'"]/g, function (c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c];
+    });
+  }
+
+  function today() {
+    try { return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date()).replace(/\//g,'.'); }
+    catch (e) { return new Date().toLocaleDateString(); }
+  }
+
+  function exhibitNo(id) {
+    var n = String(id % 1000000).padStart(6, '0');
+    return 'No.' + n;
+  }
+
+  function toast(message) {
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = message;
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');});
+    setTimeout(function(){el.classList.remove('show'); setTimeout(function(){el.remove();},220);},1800);
+  }
+
+  function navHtml(active) {
+    return '<nav class="bottom-nav" aria-label="主导航">' +
+      '<button data-nav="home" class="'+(active==='home'?'active':'')+'"><span>⌂</span><small>首页</small></button>' +
+      '<button data-nav="gallery" class="'+(active==='gallery'?'active':'')+'"><span>▦</span><small>我的美术馆</small></button>' +
+      '<button data-nav="notes" class="'+(active==='notes'?'active':'')+'"><span>✎</span><small>策展人手记</small></button>' +
+      '</nav>';
+  }
+
+  function backButton() {
+    return '<button class="icon-btn" data-action="back" aria-label="返回">←</button>';
+  }
+
+  function menuButton() {
+    return '<button class="icon-btn" data-action="menu" aria-label="菜单">☰</button>';
+  }
+
+  function homeScreen() {
+    return '<main class="screen">' +
+      '<header class="topbar"><div class="brand-mark"><strong>普通生活美术馆</strong><span>ORDINARY LIFE MUSEUM</span></div>' + menuButton() + '</header>' +
+      '<section class="hero-copy"><div class="eyebrow">CURATE THE EVERYDAY · 日常策展计划</div>' +
+      '<h1 class="hero-title">把普通日子<br>挂进<em>美术馆。</em></h1>' +
+      '<p class="hero-sub">同一个瞬间，换一种观看方式。拍下一张你原本可能会忘记的照片，我们把它重新挂起来。</p>' +
+      '<div class="doodle-row"><span>✦</span><span>⌁</span><span>✿</span></div></section>' +
+      '<section class="polaroid" aria-label="今日作品示意"><div class="hero-art"><div class="tram"></div><div class="rail"></div></div>' +
+      '<div class="polaroid-caption"><strong>今日作品</strong><small>No.000128 ♡</small></div></section>' +
+      '<button class="primary-btn" data-action="start">开始布展 →</button>' +
+      '<p class="hand-note">点击开始，把你的生活挂进美术馆吧！</p>' +
+      '</main>' + navHtml('home');
+  }
+
+  function uploadScreen() {
+    return '<main class="screen">' +
+      '<header class="topbar">' + backButton() + '<div class="eyebrow">NEW EXHIBITION</div><span style="width:42px"></span></header>' +
+      '<h1 class="screen-title">选择一个<br>普通瞬间</h1>' +
+      '<p class="screen-sub">先选一张照片。这个原型默认只在你的浏览器本地处理，不会主动上传到服务器。</p>' +
+      '<section class="upload-zone">' +
+      '<div><div class="camera"></div><strong>拍一张，或者选一张</strong><p>通勤、晚饭、窗边、下雨、回家的路……<br>越普通，越适合被重新看见。</p><button class="paper-btn" data-action="pick-photo">选择照片</button></div>' +
+      '</section></main>' + navHtml('home');
+  }
+
+  function styleScreen() {
+    var cards = AI.styles.map(function (s) {
+      return '<button class="style-card '+(state.selectedStyle===s.id?'selected':'')+'" data-style="'+s.id+'" data-tone="'+s.tone+'">' +
+        '<img class="style-thumb" src="'+state.original+'" alt="'+escapeHtml(s.name)+'预览" style="filter:'+previewFilter(s.id)+'">' +
+        '<h3>'+escapeHtml(s.name)+'</h3><span class="en">'+escapeHtml(s.en)+'</span><p>'+escapeHtml(s.desc)+'</p></button>';
+    }).join('');
+    return '<main class="screen">' +
+      '<header class="topbar">'+backButton()+'<div class="eyebrow">WAYS OF SEEING</div><span style="width:42px"></span></header>' +
+      '<h1 class="screen-title">选择一种<br>观看方式</h1><p class="screen-sub">不是给照片套滤镜，而是给同一个瞬间换一副观看的眼睛。</p>' +
+      '<div class="preview-strip"><img src="'+state.original+'" alt="原始照片"><div><strong>原始瞬间</strong><small>已准备好 · 选择一种展厅风格</small></div></div>' +
+      '<section class="style-grid">'+cards+'</section>' +
+      '<div class="sticky-actions"><button class="primary-btn" style="margin:0" data-action="generate">开始布展 →</button></div>' +
+      '</main>' + navHtml('home');
+  }
+
+  function previewFilter(id) {
+    return ({
+      oil:'saturate(1.15) contrast(1.08) sepia(.12)',
+      film:'saturate(.82) contrast(.88) sepia(.1) brightness(1.05)',
+      dream:'saturate(1.2) contrast(.86) brightness(1.08) blur(.3px)',
+      watercolor:'saturate(.86) contrast(.82) brightness(1.12)',
+      print:'grayscale(.75) sepia(.45) contrast(1.25)',
+      editorial:'saturate(.86) contrast(1.08) brightness(1.03)'
+    })[id] || '';
+  }
+
+  function loadingScreen() {
+    return '<main class="screen"><section class="loading-wrap">' +
+      '<div class="loading-polaroid"><img src="'+state.original+'" alt="正在布展的照片"></div>' +
+      '<h1 class="loading-title">正在布展……</h1>' +
+      '<div class="loading-note">你的普通生活，<br>正在被重新挂进美术馆。 ♡</div>' +
+      '<div class="progress-shell"><div id="progressBar" class="progress-bar"></div></div>' +
+      '<div id="progressLabel" class="progress-label">正在整理光线 · 0%</div>' +
+      '</section></main>';
+  }
+
+  function resultScreen() {
+    var item = state.generated;
+    if (!item) return homeScreen();
+    var visible = state.compareMode === 'original' ? item.original : item.image;
+    return '<main class="screen">' +
+      '<header class="topbar">'+backButton()+'<div class="eyebrow">TODAY\'S EXHIBIT</div>'+menuButton()+'</header>' +
+      '<section class="result-frame"><img id="resultImage" src="'+visible+'" alt="生成作品"><div class="exhibit-tag">'+escapeHtml(item.no)+'<br>'+escapeHtml(item.date)+'</div></section>' +
+      '<div class="compare-toggle"><button data-compare="art" class="'+(state.compareMode==='art'?'active':'')+'">作品</button><button data-compare="original" class="'+(state.compareMode==='original'?'active':'')+'">原片</button></div>' +
+      '<section class="result-meta"><h1>'+escapeHtml(item.style.name)+'</h1><div class="en">'+escapeHtml(item.style.en)+'</div></section>' +
+      '<section class="curator-card"><h3>策展人手记</h3><p>'+escapeHtml(item.note)+'</p></section>' +
+      '<section class="action-grid">' +
+      '<button class="action-card" data-action="save"><span>⇩</span><strong>保存作品</strong></button>' +
+      '<button class="action-card" data-action="again"><span>↻</span><strong>再做一幅</strong></button>' +
+      '<button class="action-card" data-action="share"><span>↗</span><strong>分享展签</strong></button>' +
+      '</section></main>' + navHtml('gallery');
+  }
+
+  function galleryScreen() {
+    var content;
+    if (!state.gallery.length) {
+      content = '<section class="empty-state"><div><div class="big">▧</div><h3>展厅还是空的</h3><p>从第一张普通照片开始。<br>日常不需要特别，才值得收藏。</p><button class="primary-btn small" data-action="start">开始新布展</button></div></section>';
+    } else {
+      content = '<section class="gallery-grid">' + state.gallery.map(function (x) {
+        return '<button class="gallery-item" data-open-art="'+x.id+'"><img src="'+x.image+'" alt="'+escapeHtml(x.style.name)+'"><strong>'+escapeHtml(x.style.name)+' · '+escapeHtml(x.no)+'</strong><small>'+escapeHtml(x.date)+'</small></button>';
+      }).join('') + '</section><button class="primary-btn" data-action="start">＋ 开始新布展</button>';
+    }
+    return '<main class="screen"><header class="topbar"><div class="brand-mark"><strong>我的美术馆</strong><span>MY ORDINARY MUSEUM</span></div>'+menuButton()+'</header>' +
+      '<section class="gallery-head"><h1>我的美术馆 ✿</h1><p>共 '+state.gallery.length+' 件作品 · 每一件都来自真实生活</p></section>' + content + '</main>' + navHtml('gallery');
+  }
+
+  function notesScreen() {
+    var generatedNotes = state.gallery.slice(0, 3).map(function (x, i) {
+      var cls = ['yellow','pink','green'][i%3];
+      return '<article class="note-card '+cls+'"><small>'+escapeHtml(x.date)+' · '+escapeHtml(x.no)+'</small><p>'+escapeHtml(x.note)+'</p></article>';
+    }).join('');
+    var defaults = '';
+    if (!generatedNotes) {
+      defaults = '<article class="note-card yellow"><small>今天</small><p>我们总是急着把日子过完，却忘了，那些普通瞬间，才是真正的生活。</p></article>' +
+      '<article class="note-card pink"><small>给下一张照片</small><p>同一个地点，不同的光线，不同的心情，就能变成不一样的作品。</p></article>' +
+      '<article class="note-card green"><small>馆内提醒</small><p>生活没有标准答案，但它值得被认真看见。</p></article>';
+    }
+    return '<main class="screen"><header class="topbar">'+backButton()+'<div class="eyebrow">CURATOR NOTES</div><span style="width:42px"></span></header>' +
+      '<h1 class="screen-title">策展人手记 ✎</h1><p class="screen-sub">不是评价照片好不好，而是记录这一刻为什么值得被看见。</p>' +
+      '<section class="notebook">'+(generatedNotes || defaults)+'</section></main>' + navHtml('notes');
+  }
+
+  function menuSheet() {
+    var wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.innerHTML = '<section class="sheet"><div class="sheet-handle"></div><h2>美术馆菜单</h2><div class="menu-list">' +
+      '<button data-sheet="about"><strong>关于这个原型</strong><br><small>本地运行 · 无需 API Key</small></button>' +
+      '<button data-sheet="prompts"><strong>查看当前 AI Prompt 结构</strong><br><small>为之后接真实图生图接口预留</small></button>' +
+      '<button class="danger" data-sheet="clear"><strong>清空本地美术馆</strong><br><small>删除当前浏览器里的作品</small></button>' +
+      '<button data-sheet="close"><strong>关闭</strong></button></div></section>';
+    document.body.appendChild(wrap);
+    wrap.addEventListener('click', function(e){ if(e.target===wrap) wrap.remove(); });
+    wrap.querySelectorAll('[data-sheet]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var a=btn.getAttribute('data-sheet');
+        if(a==='close') return wrap.remove();
+        if(a==='about'){ toast('当前是可直接运行的本地 Web MVP'); return; }
+        if(a==='prompts'){
+          var p=AI.styles.map(function(s){return s.name+'：'+s.prompt;}).join('\n\n');
+          if(navigator.clipboard) navigator.clipboard.writeText(p).then(function(){toast('六套 Prompt 已复制');});
+          else toast('当前浏览器不支持一键复制');
+          return;
+        }
+        if(a==='clear'){
+          dbClear().then(function(){state.gallery=[];wrap.remove();render('gallery');toast('本地美术馆已清空');});
+        }
+      });
+    });
+  }
+
+  function render(route) {
+    state.route = route || state.route;
+    window.scrollTo(0,0);
+    if (state.route === 'home') app.innerHTML = homeScreen();
+    if (state.route === 'upload') app.innerHTML = uploadScreen();
+    if (state.route === 'styles') app.innerHTML = styleScreen();
+    if (state.route === 'loading') app.innerHTML = loadingScreen();
+    if (state.route === 'result') app.innerHTML = resultScreen();
+    if (state.route === 'gallery') app.innerHTML = galleryScreen();
+    if (state.route === 'notes') app.innerHTML = notesScreen();
+    bind();
+  }
+
+  function bind() {
+    app.querySelectorAll('[data-nav]').forEach(function (el) {
+      el.onclick = function () { render(el.getAttribute('data-nav')); };
+    });
+    app.querySelectorAll('[data-action]').forEach(function (el) {
+      el.onclick = function () {
+        var a = el.getAttribute('data-action');
+        if (a === 'start') { state.original=null; state.generated=null; render('upload'); }
+        if (a === 'back') { goBack(); }
+        if (a === 'menu') menuSheet();
+        if (a === 'pick-photo') photoInput.click();
+        if (a === 'generate') generate();
+        if (a === 'again') { state.generated=null; state.compareMode='art'; render('styles'); }
+        if (a === 'save') downloadCurrent();
+        if (a === 'share') shareCurrent();
+      };
+    });
+    app.querySelectorAll('[data-style]').forEach(function (el) {
+      el.onclick = function () { state.selectedStyle = el.getAttribute('data-style'); render('styles'); };
+    });
+    app.querySelectorAll('[data-compare]').forEach(function (el) {
+      el.onclick = function () { state.compareMode=el.getAttribute('data-compare'); render('result'); };
+    });
+    app.querySelectorAll('[data-open-art]').forEach(function (el) {
+      el.onclick = function () {
+        var id = Number(el.getAttribute('data-open-art'));
+        var item = state.gallery.find(function(x){return x.id===id;});
+        if(item){ state.generated=item; state.original=item.original; state.selectedStyle=item.style.id; state.compareMode='art'; render('result'); }
+      };
+    });
+  }
+
+  function goBack() {
+    if (state.route === 'upload') return render('home');
+    if (state.route === 'styles') return render('upload');
+    if (state.route === 'result') return render('gallery');
+    if (state.route === 'notes') return render('home');
+    return render('home');
+  }
+
+  photoInput.addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 18 * 1024 * 1024) { toast('图片太大了，建议选择 18MB 以内照片'); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      state.original = reader.result;
+      state.selectedStyle = 'film';
+      AI.analyzePhoto(state.original).then(function(a){ if(a.recommendedStyle) state.selectedStyle=a.recommendedStyle; render('styles'); });
+    };
+    reader.readAsDataURL(file);
+    photoInput.value = '';
+  });
+
+  function generate() {
+    if (!state.original) return render('upload');
+    render('loading');
+    var label = document.getElementById('progressLabel');
+    var bar = document.getElementById('progressBar');
+    var fake = 0;
+    var words = ['正在整理光线','正在选择纸张','正在重新观看这个瞬间','正在写展签'];
+    var timer = setInterval(function(){
+      fake=Math.min(88,fake+Math.ceil(Math.random()*7));
+      if(bar) bar.style.width=fake+'%';
+      if(label) label.textContent=words[Math.min(words.length-1,Math.floor(fake/25))]+' · '+fake+'%';
+    },130);
+
+    AI.generateArtwork(state.original, state.selectedStyle, function(p){
+      if(bar && p>fake){fake=p;bar.style.width=p+'%';}
+    }).then(function(res){
+      clearInterval(timer);
+      var id=Date.now();
+      var item={id:id,no:exhibitNo(id),date:today(),image:res.image,original:state.original,style:res.style,note:res.note,prompt:res.prompt};
+      state.generated=item;
+      state.compareMode='art';
+      dbPut(item).then(function(){return dbGetAll();}).then(function(list){state.gallery=list;setTimeout(function(){render('result');},260);});
+    }).catch(function(){
+      clearInterval(timer);
+      toast('布展失败了，请换一张照片再试');
+      render('styles');
+    });
+  }
+
+  function downloadCurrent() {
+    if (!state.generated) return;
+    var a=document.createElement('a');
+    a.href=state.generated.image;
+    a.download='ordinary-museum-'+state.generated.no.replace('.','-')+'.jpg';
+    document.body.appendChild(a);a.click();a.remove();
+    toast('作品已准备保存');
+  }
+
+  function dataUrlToFile(dataUrl, filename) {
+    var arr=dataUrl.split(',');
+    var mime=(arr[0].match(/:(.*?);/)||[])[1]||'image/jpeg';
+    var bstr=atob(arr[1]);var n=bstr.length;var u8=new Uint8Array(n);
+    while(n--)u8[n]=bstr.charCodeAt(n);
+    return new File([u8],filename,{type:mime});
+  }
+
+  function shareCurrent() {
+    if (!state.generated) return;
+    var text='我把一个普通瞬间挂进了「普通生活美术馆」：'+state.generated.style.name+' · '+state.generated.no;
+    try {
+      var file=dataUrlToFile(state.generated.image,'ordinary-museum.jpg');
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({title:'普通生活美术馆',text:text,files:[file]}).catch(function(){});
+      } else if(navigator.share){ navigator.share({title:'普通生活美术馆',text:text}).catch(function(){}); }
+      else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('展签文字已复制');});}
+      else toast('当前浏览器不支持系统分享');
+    } catch(e){toast('当前浏览器不支持系统分享');}
+  }
+
+  dbGetAll().then(function(list){ state.gallery=list; render('home'); });
+
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+})();
+
+  </script>
+</body>
+</html>

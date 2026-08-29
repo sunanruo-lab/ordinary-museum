@@ -1,0 +1,13 @@
+{
+  "name": "普通生活美术馆",
+  "short_name": "生活美术馆",
+  "description": "把普通日子，挂进美术馆。",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7efe1",
+  "theme_color": "#f7efe1",
+  "icons": [
+    {"src":"assets/icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"assets/icon-512.png","sizes":"512x512","type":"image/png"}
+  ]
+}
